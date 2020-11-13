@@ -1,34 +1,61 @@
 import React from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
-import {View, StyleSheet, Image} from 'react-native';
-import {Images, Width} from '../../Constants';
-import {Chip, Divider, Paragraph, Title} from 'react-native-paper';
-import {CardProduct} from '../../Components/Card/CardProduct';
-import {Spacer} from '../../Components/Common';
-import {getInformationByLanguage} from './Utils';
-import {URL} from '../../Constants/Config';
+import {useQuery} from '@apollo/client';
+import { ScrollView } from 'react-native-gesture-handler';
+import { View, StyleSheet, Image, Text } from 'react-native';
+import { Images, Width } from '../../Constants';
+import { Chip, Divider, Paragraph, Title } from 'react-native-paper';
+import { CardProduct } from '../../Components/Card/CardProduct';
+import { Spacer } from '../../Components/Common';
+import { getInformationByLanguage,getSimilarProducts } from './Utils';
+import { URL,ID_MENU } from '../../Constants/Config';
+import { URLA } from '../../AxiosUrl/axiosurl';
+import axios from 'axios';
+import { DOCUMENT_GET_DATA } from '../../Graphql/Query';
 
 const Product = (props) => {
   const product =
     props.route.params && props.route.params.product
       ? props.route.params.product
       : null;
+  const [similarProducts, setSimilarProducts] = React.useState([]);
+  const {data} = useQuery(DOCUMENT_GET_DATA, {
+    variables: {accessCode: ID_MENU},
+  });
+  React.useEffect(() => {
+    const config = async () => {
+      const response = await axios.get(`${URLA}/${product.id}`);
+      const categories = data.getAccessMenuDetails.accessMenu.categories || [];
+      const newSimilarProducts = getSimilarProducts(categories, response.data);
+      setSimilarProducts(newSimilarProducts);
+    };
+    if (product && data) {
+      config();
+    }
+  }, [product, data]);
 
-  const similarFood = new Array(6).fill(10);
   const renderItem = () => {
-    return similarFood.map((item, index) => {
+    return similarProducts.map((item, index) => {
+      const name = getInformationByLanguage(item.names);
+      const shortDescription = getInformationByLanguage(item.shortDescriptions);
+      const currency =
+        item.price && item.price.currency && item.price.currency.code
+          ? item.price.currency.code
+          : 'QR';
+      const price = item.price && item.price.value ? item.price.value : '0';
+      const priceValue = `${price}${currency}`;
+      const image =
+        item.picture && item.picture.fileUrl
+          ? {uri: `${URL}/${item.picture.fileUrl}`}
+          : Images.defaultCategory;
       return (
         <React.Fragment key={index}>
           <CardProduct
-            name="Tuna"
-            image={{
-              uri:
-                'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQJOpMJL8ROfiCZ4Z1NwNsNItggUnwdOQtV3A&usqp=CAU',
-            }}
-            description="Lorem Ipsum is simply dummy text of the printing and typesetting industry."
-            price={10}
+            name={name.value}
+            image={image}
+            description={shortDescription.value}
+            price={priceValue}
             onPress={() => {
-              props.navigation.navigate('Product');
+              props.navigation.push('Product', {product: item});
             }}
           />
           <Spacer />

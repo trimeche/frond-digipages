@@ -44,14 +44,14 @@ const Intro = (props) => {
           <Image source={logo} style={styles.logo} resizeMode="contain" />
           <Title style={styles.title}>Welcome</Title>
           <Text style={styles.subTitle}>
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry.
+            The mission is simple: serve delicious, fresh food that 
+            guests will want to return to week after week because our menu recommended a best food to you 
           </Text>
         </View>
       </ImageBackground>
       <View style={styles.box}>
         <View style={styles.boxLeft}>
-          <Text style={styles.text}>Lorem Ipsum is simply dummy text.</Text>
+          <Text style={styles.text}>The best Recommendation For You in Our Menu</Text>
         </View>
         <Button mode="text" color="#000" onPress={onPress}>
           Next
